@@ -1,3 +1,6 @@
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Random;
 
 public class Personagem{
@@ -6,6 +9,21 @@ public class Personagem{
   int energia;
   private int fome;
   private int sono;
+
+  public void realizarAtividade(String atividade, Connection conn) {
+
+      logAtividade(atividade, conn);
+  }
+
+  private void logAtividade(String atividade, Connection conn) {
+      String sql = "INSERT INTO tb_atividade (descricao) VALUES (?)";
+       try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+           stmt.setString(1, atividade);
+           stmt.executeUpdate();
+       } catch (SQLException e) {
+           e.printStackTrace();
+       }
+   }
 
   //esse é o construtor padrão
   //criado automaticamente pelo compilador, ainda que não seja escrito explicitamente
