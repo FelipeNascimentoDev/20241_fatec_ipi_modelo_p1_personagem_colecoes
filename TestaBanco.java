@@ -14,18 +14,40 @@ public class TestaBanco {
     public static void main(String[] args) {
         try {
             Connection conn = DriverManager.getConnection(url, user, password);
-            exibirMenu(conn);
+            if (login(conn)) {
+                exibirMenu(conn);
+            }
+            else {
+                int SimNao = JOptionPane.showOptionDialog(null,
+                "Nome de usuário ou senha incorretos. O que você gostaria de fazer?",
+                    "Login Falhou",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    new Object[]{"Tentar Novamente", "Sair"},
+                    "Tentar Novamente");
+
+                if (SimNao == JOptionPane.NO_OPTION) {
+                    JOptionPane.showMessageDialog(null, "Saindo... Até mais!");
+                }
+                else {
+                   main(args);
+                }
+
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
+
+
     public static void exibirMenu(Connection conn) {
         Personagem personagem = new Personagem("Herói", 10, 5, 3);
 
         while (true) {
-            String[] options = {"Jogar", "Consultar Log", "Sair"};
+            String[] opcoes = {"Jogar", "Consultar Log", "Sair"};
             int escolha = JOptionPane.showOptionDialog(null, "Menu de Opções", "Menu",
-                    JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+                    JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, opcoes, opcoes[0]);
 
             switch (escolha) {
                 case 0:
@@ -35,13 +57,39 @@ public class TestaBanco {
                     consultarLog(conn);
                     break;
                 case 2:
-                    JOptionPane.showMessageDialog(null, "Saindo...");
+                    JOptionPane.showMessageDialog(null, "Saindo...Até mais!");
                     return;
                 default:
                     JOptionPane.showMessageDialog(null, "Opção inválida. Tente novamente.");
             }
         }
     }
+
+
+    public static boolean login(Connection conn) {
+        String nome_usuario = JOptionPane.showInputDialog("Digite o nome de usuário:");
+        String senha_usuario = JOptionPane.showInputDialog("Digite a senha:");
+
+        String sql = "SELECT * FROM tb_usuario WHERE nome_usuario = ? AND senha_usuario = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, nome_usuario);
+            ps.setString(2, senha_usuario);
+
+        try (ResultSet rs = ps.executeQuery()) { //ResultSet vai armazenar o que foi encontrado na busca com o ps que a gente fez
+            if (rs.next()) { // rs.next verifica se o rs trouxe pelo menos uma linha da tabela de resultado
+                JOptionPane.showMessageDialog(null, "Login bem-sucedido!");
+                return true;
+            }
+        }
+    }
+    catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    return false;
+}
+
 
     public static void jogar(Personagem personagem, Connection conn) {
         Random random = new Random();
@@ -58,6 +106,7 @@ public class TestaBanco {
         JOptionPane.showMessageDialog(null, atividadesRealizadas.toString());
     }
 
+    
     public static void consultarLog(Connection conn) {
         String sql = "SELECT * FROM tb_atividade ORDER BY cod_atividade DESC";
         StringBuilder logAtividades = new StringBuilder("Log de atividades:\n");
