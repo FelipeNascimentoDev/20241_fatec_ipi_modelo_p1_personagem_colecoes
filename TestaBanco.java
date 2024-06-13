@@ -95,6 +95,7 @@ public class TestaBanco {
 
     public static void jogar(Personagem personagem, Connection conn, int id) {
         Random random = new Random();
+        int pontos_da_jogada = 0;
         String[] atividades = {"comer", "dormir", "caçar"};
 
         StringBuilder atividadesRealizadas = new StringBuilder("Atividades realizadas:\n");
@@ -107,15 +108,18 @@ public class TestaBanco {
                     personagem.comer(conn);
                     break;
                 case 1:
-                personagem.dormir(conn);
+                    personagem.dormir(conn);
+                    pontos_da_jogada += -1;
                     break;
                 case 2:
-                personagem.cacar(conn);
+                    personagem.cacar(conn);
+                    pontos_da_jogada += 2;
                     break;
             }
             personagem.logAtividade(atividade, conn, id);
             atividadesRealizadas.append(atividade).append("\n");
         }
+        inserirRanking(conn, pontos_da_jogada, id);
 
         JOptionPane.showMessageDialog(null, atividadesRealizadas.toString());
     }
@@ -126,7 +130,7 @@ public class TestaBanco {
         StringBuilder logAtividades = new StringBuilder("Log de atividades:\n");
 
         try (PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+            ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
                 int id = rs.getInt("cod_atividade");
@@ -143,4 +147,17 @@ public class TestaBanco {
 
         JOptionPane.showMessageDialog(null, logAtividades.toString());
     }
+
+    public static void inserirRanking(Connection conn, int pontuacao, int id) {
+
+        String sql = "INSERT INTO tb_ranking (valor_pontuacao, fk_id_usuario) VALUES (?,?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, pontuacao);
+            stmt.setInt(2, id);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
