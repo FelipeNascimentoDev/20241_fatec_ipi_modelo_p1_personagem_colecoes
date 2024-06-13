@@ -15,6 +15,16 @@ SELECT * FROM tb_atividade;
 DROP TABLE tb_atividade;
 
 
+-- Ajusta a tb_atividade colocando o id_usuario e linkando as tabelas com fk
+
+
+ALTER TABLE tb_atividade 
+ADD COLUMN fk_id_usuario INT;
+
+
+ALTER TABLE tb_atividade
+ADD CONSTRAINT fk_usuario_atividade FOREIGN KEY (fk_id_usuario) REFERENCES tb_usuario(id_usuario);
+
 -- Sobre o Usuario e Senha:
 
 

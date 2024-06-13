@@ -34,26 +34,23 @@ public class Personagem{
     this.nome = nome;
   }
 
-public void realizarAtividade(String atividade, Connection conn) {
-  logAtividade(atividade, conn);
-}
 
-private void logAtividade(String atividade, Connection conn) {
-  String sql = "INSERT INTO tb_atividade (descricao) VALUES (?)";
-   try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-       stmt.setString(1, atividade);
-       stmt.executeUpdate();
-   } catch (SQLException e) {
-       e.printStackTrace();
-   }
-}
+  public void logAtividade(String atividade, Connection conn, int id) {
+    String sql = "INSERT INTO tb_atividade (descricao, fk_id_usuario) VALUES (?,?)";
+    try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setString(1, atividade);
+        stmt.setInt(2, id);
+        stmt.executeUpdate();
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+  }
 
 
   void cacar(Connection conn){
     if(energia >= 2){
       System.out.printf("%s esta cacando...\n", nome);
       energia -= 2; // energia = energia - 2;
-      realizarAtividade("caçar", conn);
     }
     else{
       System.out.printf("%s sem energia para cacar...\n", nome);
@@ -78,7 +75,6 @@ private void logAtividade(String atividade, Connection conn) {
           System.out.printf("%s comendo...\n", nome);
           --fome;
           energia = (energia == 10 ? energia : energia + 1);
-          realizarAtividade("comer", conn);
       }
   }
 
@@ -87,7 +83,6 @@ private void logAtividade(String atividade, Connection conn) {
       System.out.printf("%s esta dormindo...\n", nome);
       sono -= 1;
       energia = Math.min(energia + 1, 10);
-      realizarAtividade("dormir", conn);
     }
     else{
       System.out.printf("%s sem sono...\n", nome);

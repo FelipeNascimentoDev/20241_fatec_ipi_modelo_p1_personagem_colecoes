@@ -14,8 +14,9 @@ public class TestaBanco {
     public static void main(String[] args) {
         try {
             Connection conn = DriverManager.getConnection(url, user, password);
-            if (login(conn)) {
-                exibirMenu(conn);
+            int id = login(conn);
+            if (id > -1) {
+                exibirMenu(conn, id);
             }
             else {
                 int SimNao = JOptionPane.showOptionDialog(null,
@@ -41,7 +42,7 @@ public class TestaBanco {
     }
 
 
-    public static void exibirMenu(Connection conn) {
+    public static void exibirMenu(Connection conn, int id) {
         Personagem personagem = new Personagem("Herói", 10, 5, 3);
 
         while (true) {
@@ -51,7 +52,7 @@ public class TestaBanco {
 
             switch (escolha) {
                 case 0:
-                    jogar(personagem, conn);
+                    jogar(personagem, conn, id);
                     break;
                 case 1:
                     consultarLog(conn);
@@ -66,11 +67,11 @@ public class TestaBanco {
     }
 
 
-    public static boolean login(Connection conn) {
+    public static int login(Connection conn) {
         String nome_usuario = JOptionPane.showInputDialog("Digite o nome de usuário:");
         String senha_usuario = JOptionPane.showInputDialog("Digite a senha:");
 
-        String sql = "SELECT * FROM tb_usuario WHERE nome_usuario = ? AND senha_usuario = ?";
+        String sql = "SELECT id_usuario FROM tb_usuario WHERE nome_usuario = ? AND senha_usuario = ?";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, nome_usuario);
@@ -78,8 +79,9 @@ public class TestaBanco {
 
         try (ResultSet rs = ps.executeQuery()) { //ResultSet vai armazenar o que foi encontrado na busca com o ps que a gente fez
             if (rs.next()) { // rs.next verifica se o rs trouxe pelo menos uma linha da tabela de resultado
+                int id = rs.getInt("id_usuario");
                 JOptionPane.showMessageDialog(null, "Login bem-sucedido!");
-                return true;
+                return id;
             }
         }
     }
@@ -87,19 +89,31 @@ public class TestaBanco {
         e.printStackTrace();
     }
 
-    return false;
+    return -1;
 }
 
 
-    public static void jogar(Personagem personagem, Connection conn) {
+    public static void jogar(Personagem personagem, Connection conn, int id) {
         Random random = new Random();
         String[] atividades = {"comer", "dormir", "caçar"};
 
         StringBuilder atividadesRealizadas = new StringBuilder("Atividades realizadas:\n");
 
         for (int i = 0; i < 10; i++) {
-            String atividade = atividades[random.nextInt(atividades.length)];
-            personagem.realizarAtividade(atividade, conn);
+            int opcao = random.nextInt(atividades.length);
+            String atividade = atividades[opcao];
+            switch(opcao){
+                case 0:
+                    personagem.comer(conn);
+                    break;
+                case 1:
+                personagem.dormir(conn);
+                    break;
+                case 2:
+                personagem.cacar(conn);
+                    break;
+            }
+            personagem.logAtividade(atividade, conn, id);
             atividadesRealizadas.append(atividade).append("\n");
         }
 
@@ -108,7 +122,7 @@ public class TestaBanco {
 
     
     public static void consultarLog(Connection conn) {
-        String sql = "SELECT * FROM tb_atividade ORDER BY cod_atividade DESC";
+        String sql = "SELECT ta.*, tu.nome_usuario FROM tb_atividade AS ta JOIN tb_usuario AS tu ON tu.id_usuario = ta.fk_id_usuario ORDER BY cod_atividade DESC";
         StringBuilder logAtividades = new StringBuilder("Log de atividades:\n");
 
         try (PreparedStatement stmt = conn.prepareStatement(sql);
@@ -118,8 +132,9 @@ public class TestaBanco {
                 int id = rs.getInt("cod_atividade");
                 String descricao = rs.getString("descricao");
                 String dataDeOcorrencia = rs.getString("data_de_ocorrencia");
+                String nomeUsuario = rs.getString("nome_usuario");
 
-                logAtividades.append(String.format("ID: %d, Descrição: %s, Data de Ocorrência: %s%n", id, descricao, dataDeOcorrencia));
+                logAtividades.append(String.format("ID: %d, Descrição: %s, Data de Ocorrência: %s, Nome: %s%n", id, descricao, dataDeOcorrencia, nomeUsuario));
             }
 
         } catch (SQLException e) {
