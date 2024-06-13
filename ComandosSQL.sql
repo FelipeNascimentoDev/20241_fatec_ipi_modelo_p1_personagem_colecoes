@@ -25,6 +25,7 @@ ADD COLUMN fk_id_usuario INT;
 ALTER TABLE tb_atividade
 ADD CONSTRAINT fk_usuario_atividade FOREIGN KEY (fk_id_usuario) REFERENCES tb_usuario(id_usuario);
 
+
 -- Sobre o Usuario e Senha:
 
 

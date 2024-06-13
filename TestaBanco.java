@@ -46,7 +46,7 @@ public class TestaBanco {
         Personagem personagem = new Personagem("Herói", 10, 5, 3);
 
         while (true) {
-            String[] opcoes = {"Jogar", "Consultar Log", "Sair"};
+            String[] opcoes = {"Jogar", "Consultar Log", "Mostrar Rank", "Sair"};
             int escolha = JOptionPane.showOptionDialog(null, "Menu de Opções", "Menu",
                     JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, opcoes, opcoes[0]);
 
@@ -58,6 +58,9 @@ public class TestaBanco {
                     consultarLog(conn);
                     break;
                 case 2:
+                    consultarRanking(conn);
+                    break;
+                case 3:
                     JOptionPane.showMessageDialog(null, "Saindo...Até mais!");
                     return;
                 default:
@@ -158,6 +161,28 @@ public class TestaBanco {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void consultarRanking(Connection conn) {
+        String sql = "SELECT tr.*, tu.nome_usuario FROM tb_ranking AS tr JOIN tb_usuario AS tu ON tu.id_usuario = tr.fk_id_usuario ORDER BY tr.valor_pontuacao DESC, tr.data_de_ocorrencia ASC";
+        StringBuilder ranking = new StringBuilder("Ranking:\n");
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                int pts = rs.getInt("valor_pontuacao"); 
+                String dataDeOcorrencia = rs.getString("data_de_ocorrencia");
+                String nomeUsuario = rs.getString("nome_usuario");
+
+                ranking.append(String.format("Pts.: %d,Data de Ocorrência: %s, Nome: %s%n", pts, dataDeOcorrencia, nomeUsuario));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        JOptionPane.showMessageDialog(null, ranking.toString());
     }
 
 }
